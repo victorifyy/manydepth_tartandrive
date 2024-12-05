@@ -8,19 +8,36 @@ imu_timestamps = np.loadtxt("/Users/fengyingying/Downloads/2023-11-14-14-45-20_g
 # 读取图像时间戳
 image_timestamps = np.loadtxt("/Users/fengyingying/Downloads/2023-11-14-14-45-20_gupta/image_left/timestamps.txt")  # 图像时间戳文件
 
+# 读取 super_odom 数据和时间戳
+super_odom_data = np.load("/Users/fengyingying/Downloads/2023-11-14-14-45-20_gupta/super_odom/odometry.npy")  # Super Odom 数据文件
+super_odom_timestamps = np.loadtxt("/Users/fengyingying/Downloads/2023-11-14-14-45-20_gupta/super_odom/timestamps.txt")  # Super Odom 时间戳文件
+
 # 找到最近的 IMU 时间戳
 matched_imu_indices = [np.argmin(np.abs(imu_timestamps - t)) for t in image_timestamps]
 matched_imu_data = imu_data[matched_imu_indices]  # 提取对应的 IMU 数据
 
-# 输出匹配结果
+# 找到最近的 super_odom 时间戳
+matched_super_odom_indices = [np.argmin(np.abs(super_odom_timestamps - t)) for t in image_timestamps]
+matched_super_odom_data = super_odom_data[matched_super_odom_indices]  # 提取对应的 Super Odom 数据
+
+# 输出匹配结果 (IMU)
 output_file = "/Users/fengyingying/Downloads/2023-11-14-14-45-20_gupta/code/multisense_imu/matched_results.txt"
 with open(output_file, mode="w") as file:
     file.write("Image Timestamp, Matched IMU Timestamp, IMU Data\n")
     for img_t, imu_t, imu_row in zip(image_timestamps, imu_timestamps[matched_imu_indices], matched_imu_data):
         file.write(f"{img_t:.6f}, {imu_t:.6f}, {', '.join(map(str, imu_row))}\n")
 
-print(f"匹配结果已保存到文件: {output_file}")
+print(f"IMU匹配结果已保存到文件: {output_file}")
 
+# 输出匹配结果 (Super Odom)
+output_file_super_odom = "/Users/fengyingying/Downloads/2023-11-14-14-45-20_gupta/code/super_odom/matched_results.txt"
+with open(output_file_super_odom, mode="w") as file:
+    file.write("Image Timestamp, Matched Super Odom Timestamp, Super Odom Data\n")
+    for img_t, super_odom_t, super_odom_row in zip(image_timestamps, super_odom_timestamps[matched_super_odom_indices], matched_super_odom_data):
+        file.write(f"{img_t:.6f}, {super_odom_t:.6f}, {', '.join(map(str, super_odom_row))}\n")
+print(f"SuperOdom 匹配结果已保存到文件: {output_file_super_odom}")
+
+# 提取加速度和角速度
 def preprocess_imu(matched_imu_data, gravity=9.81):
     """
     校正 IMU 数据中的重力，拆分加速度和角速度
