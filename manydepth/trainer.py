@@ -286,19 +286,21 @@ class Trainer:
                 self.save_model()
 
     def validate_loss(self):
-        """Compute the average validation loss over the validation dataset"""
-        self.set_eval()
         val_loss = 0
         count = 0
 
-        with torch.no_grad():
-            for inputs in self.val_loader:
-                outputs, losses = self.process_batch(inputs)
-                val_loss += losses["loss"].item()  # 假设“loss”是总损失的键
-                count += 1
+        for batch_idx, inputs in enumerate(self.val_loader):
+            # 你的验证逻辑，例如计算损失
+            loss = self.compute_loss(inputs)  # 示例
+            val_loss += loss.item()
+            count += 1
 
-        self.set_train()
-        return val_loss / count  # 返回平均验证损失
+        # 如果没有验证样本，返回 0 或其他默认值
+        if count == 0:
+            print("Validation set is empty. Skipping validation.")
+            return 0
+
+        return val_loss / count
 
     # change feng
 
