@@ -35,13 +35,19 @@ class TartanDriveDataset(MonoDataset):
         return os.path.isfile(depth_filename)
 
     def index_to_folder_and_frame_idx(self, index):
-        """Convert index in the dataset to a folder name and frame_idx
         """
-        line = self.filenames[index].split()
-        folder = line[0]
-
-        frame_index = int(line[1]) if len(line) >= 2 else 0
-        return folder, frame_index
+        Convert dataset index to folder, frame index, and side.
+        Returns:
+            folder (str): Scene name (directory name)
+            frame_index (int): Index of the frame
+            side (str): Camera side ('l' for left, 'r' for right)
+        """
+        # 假设文件列表每行格式为: "scene_name frame_index"
+        line = self.filenames[index].split()  # 分割文件列表的行
+        folder = line[0]  # 第一列是场景名称
+        frame_index = int(line[1])  # 第二列是帧索引
+        side = "l"  # 默认设置为左相机
+        return folder, frame_index, side
 
     def get_image_path(self, folder, frame_index):
         # 假设图像存储在 `image_left_color` 文件夹中
