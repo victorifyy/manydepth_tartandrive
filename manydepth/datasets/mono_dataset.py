@@ -289,6 +289,13 @@ class MonoDataset(data.Dataset):
             inputs["depth_gt"] = np.expand_dims(depth_gt, 0)
             inputs["depth_gt"] = torch.from_numpy(inputs["depth_gt"].astype(np.float32))
 
+        folder, frame_index, side = self.index_to_folder_and_frame_idx(index)
+        inputs = {}
+        inputs[("color", 0, 0)] = self.get_color(folder, frame_index, side, do_flip=False)
+
+        # 调试输出
+        print(f"Loaded sample {index}: {inputs.keys()}")
+
         return inputs
     ### chang feng
 
