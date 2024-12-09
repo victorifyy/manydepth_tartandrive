@@ -192,6 +192,7 @@ class Trainer:
         self.val_loader = DataLoader(
             val_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
+        print(f"Validation dataset size: {len(val_dataset)}")
         self.val_iter = iter(self.val_loader)
 
         self.writers = {}
