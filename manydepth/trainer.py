@@ -184,14 +184,14 @@ class Trainer:
             frames_to_load, 4, is_train=True, img_ext=img_ext)
         self.train_loader = DataLoader(
             train_dataset, self.opt.batch_size, True,
-            num_workers=self.opt.num_workers, pin_memory=True, drop_last=True,
+            num_workers=min(2, self.opt.num_workers), pin_memory=True, drop_last=True,
             worker_init_fn=seed_worker)
         val_dataset = self.dataset(
             self.opt.data_path, val_filenames, self.opt.height, self.opt.width,
             frames_to_load, 4, is_train=False, img_ext=img_ext)
         self.val_loader = DataLoader(
             val_dataset, batch_size=self.opt.batch_size, shuffle=False,
-            num_workers=self.opt.num_workers, pin_memory=True, drop_last=False)
+            num_workers=min(2, self.opt.num_workers), pin_memory=True, drop_last=False)
         print(f"Validation dataset size: {len(val_dataset)}")
         self.val_iter = iter(self.val_loader)
 
@@ -259,6 +259,7 @@ class Trainer:
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
     '''
+
     def train(self):
         """Run the entire training pipeline with early stopping"""
         self.epoch = 0
@@ -279,6 +280,8 @@ class Trainer:
 
             # 进行早停判断
             early_stopping(val_loss)
+            if early_stopping.counter > 0:
+                print(f"Validation loss did not improve for {early_stopping.counter} epochs.")
             if early_stopping.early_stop:
                 print("Early stopping triggered.")
                 break
@@ -296,12 +299,30 @@ class Trainer:
             print(f"Processing validation batch {batch_idx}...")
             print(f"Batch inputs: {inputs.keys()}")
 
-            # Forward pass through models
-            features = self.models["encoder"](inputs["color", 0, 0])  # 示例键
+            for key, ipt in inputs.items():
+                inputs[key] = ipt.to(self.device)
+
+            # Prepare lookup frames and poses
+            relative_poses = [inputs[("relative_pose", idx)] for idx in self.matching_ids[1:]]
+            relative_poses = torch.stack(relative_poses, 1)
+
+            lookup_frames = [inputs[("color_aug", idx, 0)] for idx in self.matching_ids[1:]]
+            lookup_frames = torch.stack(lookup_frames, 1)
+
+            # Forward pass through encoder
+            features, lowest_cost, confidence_mask = self.models["encoder"](
+                inputs["color_aug", 0, 0],
+                lookup_frames,
+                relative_poses,
+                inputs[("K", 2)],
+                inputs[("inv_K", 2)],
+                min_depth_bin=self.min_depth_tracker,
+                max_depth_bin=self.max_depth_tracker
+            )
             outputs = self.models["depth"](features)
 
-            # Compute loss
-            losses = self.compute_losses(inputs, outputs)
+            # Compute losses
+            losses = self.compute_losses(inputs, outputs, is_multi=True)
             print(f"Batch losses: {losses}")
 
             val_loss += losses["loss"].item()
