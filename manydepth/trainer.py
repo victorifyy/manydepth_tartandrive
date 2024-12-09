@@ -293,8 +293,6 @@ class Trainer:
         val_loss = 0
         count = 0
 
-        print(f"Validation loader contains {len(self.val_loader)} batches.")
-
         for batch_idx, inputs in enumerate(self.val_loader):
             print(f"Processing validation batch {batch_idx}...")
 
