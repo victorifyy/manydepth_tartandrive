@@ -59,9 +59,16 @@ class TartanDriveDataset(MonoDataset):
             f_str)
         return image_path
 
-    def get_color(self, folder, frame_index, do_flip):
-        color = self.loader(self.get_image_path(folder, frame_index))
+    def get_color(self, folder, frame_index, side, do_flip):
+        """
+        Load a color image from disk and apply optional flipping.
+        """
+        # 获取图像路径
+        image_path = self.get_image_path(folder, frame_index, side)
+        # 加载图像
+        color = self.loader(image_path)
 
+        # 如果需要翻转，执行水平翻转
         if do_flip:
             color = color.transpose(pil.FLIP_LEFT_RIGHT)
 
