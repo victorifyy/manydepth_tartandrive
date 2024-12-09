@@ -3,7 +3,7 @@ import numpy as np
 import PIL.Image as pil
 import skimage.transform
 
-from manydepth.mono_dataset import MonoDataset  # 假设 Manydepth 的 MonoDataset 可以作为基础类
+from manydepth.datasets.mono_dataset import MonoDataset  # 假设 Manydepth 的 MonoDataset 可以作为基础类
 
 class TartanDriveDataset(MonoDataset):
     """TartanDrive dataset loader, modified to only use left images and depth data
