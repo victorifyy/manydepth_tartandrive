@@ -285,17 +285,23 @@ class Trainer:
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
 
+    print(f"Number of validation batches: {len(self.val_loader)}")
+    for batch_idx, inputs in enumerate(self.val_loader):
+        print(f"Batch {batch_idx}: {inputs.keys()}")
     def validate_loss(self):
         val_loss = 0
         count = 0
 
+        print(f"Validation loader contains {len(self.val_loader)} batches.")
+
         for batch_idx, inputs in enumerate(self.val_loader):
-            # 你的验证逻辑，例如计算损失
-            loss = self.compute_loss(inputs)  # 示例
+            print(f"Processing validation batch {batch_idx}...")
+
+            # 假设 `compute_loss` 是计算损失的函数
+            loss = self.compute_loss(inputs)  # 计算损失
             val_loss += loss.item()
             count += 1
 
-        # 如果没有验证样本，返回 0 或其他默认值
         if count == 0:
             print("Validation set is empty. Skipping validation.")
             return 0
