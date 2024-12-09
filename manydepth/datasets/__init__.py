@@ -2,4 +2,4 @@
 from .kitti_dataset import KITTIRAWDataset, KITTIOdomDataset, KITTIDepthDataset
 from .cityscapes_preprocessed_dataset import CityscapesPreprocessedDataset
 from .cityscapes_evaldataset import CityscapesEvalDataset
-from .tartandrive_dataset import TartanDriveDataset  # 导入自定义数据集
+from .tartan_dataset import TartanDriveDataset  # 导入自定义数据集
