@@ -294,9 +294,13 @@ class Trainer:
 
         for batch_idx, inputs in enumerate(self.val_loader):
             print(f"Processing validation batch {batch_idx}...")
-            print(f"Batch inputs: {inputs.keys()}")  # 打印输入键值
+            print(f"Batch inputs: {inputs.keys()}")
 
-            outputs = self.model(inputs)  # 假设有一个模型输出函数
+            # Forward pass through models
+            features = self.models["encoder"](inputs["color", 0, 0])  # 示例键
+            outputs = self.models["depth"](features)
+
+            # Compute loss
             losses = self.compute_losses(inputs, outputs)
             print(f"Batch losses: {losses}")
 
@@ -309,7 +313,6 @@ class Trainer:
 
         print(f"Validation loss: {val_loss / count}")
         return val_loss / count
-
     # change feng
 
     def freeze_teacher(self):
@@ -694,7 +697,7 @@ class Trainer:
         except AssertionError as e:
             print(f"Error in compute_losses: {e}")
             return {"loss": torch.tensor(0.0).to(self.device)}
-        
+
         losses = {}
         total_loss = 0
 
