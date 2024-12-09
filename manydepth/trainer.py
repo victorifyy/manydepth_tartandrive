@@ -286,9 +286,7 @@ class Trainer:
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
 
-    print(f"Number of validation batches: {len(self.val_loader)}")
-    for batch_idx, inputs in enumerate(self.val_loader):
-        print(f"Batch {batch_idx}: {inputs.keys()}")
+
     def validate_loss(self):
         val_loss = 0
         count = 0
