@@ -11,13 +11,15 @@ class TartanDriveDataset(MonoDataset):
     def __init__(self, *args, **kwargs):
         super(TartanDriveDataset, self).__init__(*args, **kwargs)
 
-        # 内参矩阵，可以根据实际情况调整
-        self.K = np.array([[0.58, 0, 0.5, 0],
-                           [0, 1.92, 0.5, 0],
-                           [0, 0, 1, 0],
-                           [0, 0, 0, 1]], dtype=np.float32)
+        # 内参矩阵，在multisense_intrinsics.txt文件中
+        self.K = np.array([
+            [455.77496337890625, 0.0, 497.1180114746094, 0.0],
+            [0.0, 456.319091796875, 251.58502197265625, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0]
+        ], dtype=np.float32)
 
-        self.full_res_shape = (1242, 375)  # 根据 TartanDrive 数据集的图像分辨率调整
+        self.full_res_shape = (1024, 544)  # 对应文件中的高度和宽度
 
     def check_depth(self):
         line = self.filenames[0].split()
@@ -79,7 +81,18 @@ class TartanDriveDataset(MonoDataset):
 
     def get_pose(self, folder, frame_index):
         """Load the pose information from the odometry file."""
-        odom_path = os.path.join(self.data_path, folder, "gps_odom", "odometry.npy")
-        odom_data = np.load(odom_path)
-        pose = odom_data[frame_index]  # 假设 odometry.npy 中包含每一帧的位姿信息
-        return pose
+        odom_path = os.path.join(self.data_path, folder, "matched_super_odom.txt")
+
+        # 读取文件并解析位姿数据
+        with open(odom_path, 'r') as f:
+            lines = f.readlines()
+
+        # 假设 frame_index 对应文件的行号（忽略文件的标题行）
+        pose_data = lines[frame_index + 1].strip().split(", ")
+
+        # 提取平移 (x, y, z) 和旋转四元数 (qx, qy, qz, qw)
+        position = np.array([float(pose_data[2]), float(pose_data[3]), float(pose_data[4])])
+        orientation = np.array([float(pose_data[5]), float(pose_data[6]), float(pose_data[7]), float(pose_data[8])])
+
+        # 返回平移和旋转数据
+        return position, orientation
