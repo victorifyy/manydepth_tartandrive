@@ -49,14 +49,18 @@ class TartanDriveDataset(MonoDataset):
         side = "l"  # 默认设置为左相机
         return folder, frame_index, side
 
-    def get_image_path(self, folder, frame_index):
-        # 假设图像存储在 `image_left_color` 文件夹中
-        f_str = "{:06d}.png".format(frame_index)
-        image_path = os.path.join(
-            self.data_path,
-            folder,
-            "image_left_color",
-            f_str)
+    def get_image_path(self, folder, frame_index, side):
+        """
+        Construct the image path for a given folder, frame index, and side.
+        """
+        file_name = f"{frame_index:06d}.png"  # 假设文件命名为 000000.png
+        if side == "l":
+            subfolder = "image_left_color"
+        elif side == "r":
+            subfolder = "image_right_color"
+        else:
+            raise ValueError(f"Invalid side '{side}' provided. Must be 'l' or 'r'.")
+        image_path = os.path.join(self.data_path, folder, subfolder, file_name)
         return image_path
 
     def get_color(self, folder, frame_index, side, do_flip):
