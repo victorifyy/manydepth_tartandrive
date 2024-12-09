@@ -40,13 +40,13 @@ class TartanDriveDataset(MonoDataset):
         Returns:
             folder (str): Scene name (directory name)
             frame_index (int): Index of the frame
-            side (str): Camera side ('l' for left, 'r' for right)
+            side (str): Camera side ('l' or 'r')
         """
-        # 假设文件列表每行格式为: "scene_name frame_index"
+        # 假设文件列表每行格式为: "scene_name frame_index side"
         line = self.filenames[index].split()  # 分割文件列表的行
         folder = line[0]  # 第一列是场景名称
         frame_index = int(line[1])  # 第二列是帧索引
-        side = "l"  # 默认设置为左相机
+        side = line[2]  # 第三列是相机视角
         return folder, frame_index, side
 
     def get_image_path(self, folder, frame_index, side):
