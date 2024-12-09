@@ -1,0 +1,3 @@
+Tartan_data/sample 0 l
+Tartan_data/sample 1 l
+Tartan_data/sample 2 l
