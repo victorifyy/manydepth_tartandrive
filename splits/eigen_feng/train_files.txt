@@ -1,3 +1,6 @@
 Tartan_data/sample 0 l
 Tartan_data/sample 1 l
 Tartan_data/sample 2 l
+Tartan_data/sample 3 l
+Tartan_data/sample 4 l
+
