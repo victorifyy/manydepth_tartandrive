@@ -190,8 +190,8 @@ class Trainer:
             self.opt.data_path, val_filenames, self.opt.height, self.opt.width,
             frames_to_load, 4, is_train=False, img_ext=img_ext)
         self.val_loader = DataLoader(
-            val_dataset, self.opt.batch_size, True,
-            num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
+            val_dataset, batch_size=self.opt.batch_size, shuffle=False,
+            num_workers=self.opt.num_workers, pin_memory=True, drop_last=False)
         print(f"Validation dataset size: {len(val_dataset)}")
         self.val_iter = iter(self.val_loader)
 
@@ -286,23 +286,28 @@ class Trainer:
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
 
-
     def validate_loss(self):
         val_loss = 0
         count = 0
 
+        print(f"Validation loader contains {len(self.val_loader)} batches.")
+
         for batch_idx, inputs in enumerate(self.val_loader):
             print(f"Processing validation batch {batch_idx}...")
+            print(f"Batch inputs: {inputs.keys()}")  # 打印输入键值
 
-            # 假设 `compute_loss` 是计算损失的函数
-            loss = self.compute_loss(inputs)  # 计算损失
-            val_loss += loss.item()
+            outputs = self.model(inputs)  # 假设有一个模型输出函数
+            losses = self.compute_losses(inputs, outputs)
+            print(f"Batch losses: {losses}")
+
+            val_loss += losses["loss"].item()
             count += 1
 
         if count == 0:
             print("Validation set is empty. Skipping validation.")
             return 0
 
+        print(f"Validation loss: {val_loss / count}")
         return val_loss / count
 
     # change feng
@@ -681,6 +686,15 @@ class Trainer:
     def compute_losses(self, inputs, outputs, is_multi=False):
         """Compute the reprojection, smoothness and proxy supervised losses for a minibatch
         """
+        try:
+            assert inputs, "Inputs are empty!"
+            assert outputs, "Outputs are empty!"
+            assert ("color", 0, 0) in inputs, "Missing color data in inputs!"
+            assert ("disp", 0) in outputs, "Missing disparity data in outputs!"
+        except AssertionError as e:
+            print(f"Error in compute_losses: {e}")
+            return {"loss": torch.tensor(0.0).to(self.device)}
+        
         losses = {}
         total_loss = 0
 
