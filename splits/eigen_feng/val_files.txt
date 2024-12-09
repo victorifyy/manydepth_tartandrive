@@ -1,4 +1,4 @@
-Tartan_data/sample 1390 l
+Tartan_data/sample 6 l
 Tartan_data/sample 10 l
 Tartan_data/sample 9 l
 Tartan_data/sample 8 l
