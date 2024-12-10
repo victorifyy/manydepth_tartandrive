@@ -97,14 +97,16 @@ class Trainer:
 
         # check the frames we need the dataloader to load
         frames_to_load = self.opt.frame_ids.copy()
-        self.matching_ids = [0]
+        self.matching_ids = [0]  # 当前帧
         if self.opt.use_future_frame:
-            self.matching_ids.append(1)
-        for idx in range(-1, -1 - self.opt.num_matching_frames, -1):
-            self.matching_ids.append(idx)
-            if idx not in frames_to_load:
-                frames_to_load.append(idx)
+            self.matching_ids.append(1)  # 未来帧
 
+        # 确保匹配的帧范围在加载的帧范围内
+        for idx in range(-1, -1 - self.opt.num_matching_frames, -1):
+            if idx in frames_to_load:  # 检查是否在已加载帧范围内
+                self.matching_ids.append(idx)
+            else:
+                print(f"Skipping frame {idx} as it's not in frames_to_load")
         print('Loading frames: {}'.format(frames_to_load))
 
         # MODEL SETUP
@@ -303,7 +305,13 @@ class Trainer:
                 inputs[key] = ipt.to(self.device)
 
             # Prepare lookup frames and poses
-            relative_poses = [inputs[("relative_pose", idx)] for idx in self.matching_ids[1:]]
+            relative_poses = []
+            for idx in self.matching_ids[1:]:
+                if ("relative_pose", idx) in inputs:
+                    relative_poses.append(inputs[("relative_pose", idx)])
+                else:
+                    print(f"Missing key: ('relative_pose', {idx}). Skipping...")
+                    relative_poses.append(torch.zeros_like(inputs[("K", 0)]))  # 填充默认值
             relative_poses = torch.stack(relative_poses, 1)
 
             lookup_frames = [inputs[("color_aug", idx, 0)] for idx in self.matching_ids[1:]]
