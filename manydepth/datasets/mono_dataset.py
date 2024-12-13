@@ -256,7 +256,6 @@ class MonoDataset(data.Dataset):
 
         folder, frame_index, side = self.index_to_folder_and_frame_idx(index)
 
-        # 加载帧图像
         for i in self.frame_idxs:
             if i == "s":
                 other_side = {"r": "l", "l": "r"}[side]
@@ -264,7 +263,6 @@ class MonoDataset(data.Dataset):
             else:
                 inputs[("color", i, -1)] = self.get_color(folder, frame_index + i, side, do_flip)
 
-        # 加载内参
         for scale in range(self.num_scales):
             K = self.load_intrinsics(folder, frame_index)
             K[0, :] *= self.width // (2 ** scale)
@@ -274,7 +272,7 @@ class MonoDataset(data.Dataset):
             inputs[("K", scale)] = torch.from_numpy(K)
             inputs[("inv_K", scale)] = torch.from_numpy(inv_K)
 
-        # 应用颜色增强
+        # 直接使用 transforms.ColorJitter 而不是 get_params
         if do_color_aug:
             color_aug = transforms.ColorJitter(self.brightness, self.contrast, self.saturation, self.hue)
         else:
@@ -282,19 +280,14 @@ class MonoDataset(data.Dataset):
 
         self.preprocess(inputs, color_aug)
 
-        # 删除临时颜色数据
         for i in self.frame_idxs:
             del inputs[("color", i, -1)]
             del inputs[("color_aug", i, -1)]
 
-        # 加载深度图（可选）
-        if self.load_depth:
+        if self.load_depth and False:
             depth_gt = self.get_depth(folder, frame_index, side, do_flip)
             inputs["depth_gt"] = np.expand_dims(depth_gt, 0)
             inputs["depth_gt"] = torch.from_numpy(inputs["depth_gt"].astype(np.float32))
-
-        # 调试输出
-        print(f"Loaded sample {index}: {inputs.keys()}")
 
         return inputs
     ### chang feng

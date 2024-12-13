@@ -97,16 +97,14 @@ class Trainer:
 
         # check the frames we need the dataloader to load
         frames_to_load = self.opt.frame_ids.copy()
-        self.matching_ids = [0]  # 当前帧
+        self.matching_ids = [0]
         if self.opt.use_future_frame:
-            self.matching_ids.append(1)  # 未来帧
-
-        # 确保匹配的帧范围在加载的帧范围内
+            self.matching_ids.append(1)
         for idx in range(-1, -1 - self.opt.num_matching_frames, -1):
-            if idx in frames_to_load:  # 检查是否在已加载帧范围内
-                self.matching_ids.append(idx)
-            else:
-                print(f"Skipping frame {idx} as it's not in frames_to_load")
+            self.matching_ids.append(idx)
+            if idx not in frames_to_load:
+                frames_to_load.append(idx)
+
         print('Loading frames: {}'.format(frames_to_load))
 
         # MODEL SETUP
@@ -168,9 +166,7 @@ class Trainer:
         # DATA
         datasets_dict = {"kitti": datasets.KITTIRAWDataset,
                          "cityscapes_preprocessed": datasets.CityscapesPreprocessedDataset,
-                         "kitti_odom": datasets.KITTIOdomDataset,
-                         "tartandrive": datasets.TartanDriveDataset,  # 添加自定义数据集
-                         }
+                         "kitti_odom": datasets.KITTIOdomDataset}
         self.dataset = datasets_dict[self.opt.dataset]
 
         fpath = os.path.join("splits", self.opt.split, "{}_files.txt")
@@ -186,15 +182,14 @@ class Trainer:
             frames_to_load, 4, is_train=True, img_ext=img_ext)
         self.train_loader = DataLoader(
             train_dataset, self.opt.batch_size, True,
-            num_workers=min(2, self.opt.num_workers), pin_memory=True, drop_last=True,
+            num_workers=self.opt.num_workers, pin_memory=True, drop_last=True,
             worker_init_fn=seed_worker)
         val_dataset = self.dataset(
             self.opt.data_path, val_filenames, self.opt.height, self.opt.width,
             frames_to_load, 4, is_train=False, img_ext=img_ext)
         self.val_loader = DataLoader(
-            val_dataset, batch_size=self.opt.batch_size, shuffle=False,
-            num_workers=min(2, self.opt.num_workers), pin_memory=True, drop_last=False)
-        print(f"Validation dataset size: {len(val_dataset)}")
+            val_dataset, self.opt.batch_size, True,
+            num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
         self.val_iter = iter(self.val_loader)
 
         self.writers = {}
@@ -261,7 +256,6 @@ class Trainer:
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
     '''
-
     def train(self):
         """Run the entire training pipeline with early stopping"""
         self.epoch = 0
@@ -282,8 +276,6 @@ class Trainer:
 
             # 进行早停判断
             early_stopping(val_loss)
-            if early_stopping.counter > 0:
-                print(f"Validation loss did not improve for {early_stopping.counter} epochs.")
             if early_stopping.early_stop:
                 print("Early stopping triggered.")
                 break
@@ -292,56 +284,20 @@ class Trainer:
                 self.save_model()
 
     def validate_loss(self):
+        """Compute the average validation loss over the validation dataset"""
+        self.set_eval()
         val_loss = 0
         count = 0
 
-        print(f"Validation loader contains {len(self.val_loader)} batches.")
+        with torch.no_grad():
+            for inputs in self.val_loader:
+                outputs, losses = self.process_batch(inputs)
+                val_loss += losses["loss"].item()  # 假设“loss”是总损失的键
+                count += 1
 
-        for batch_idx, inputs in enumerate(self.val_loader):
-            print(f"Processing validation batch {batch_idx}...")
-            print(f"Batch inputs: {inputs.keys()}")
+        self.set_train()
+        return val_loss / count  # 返回平均验证损失
 
-            for key, ipt in inputs.items():
-                inputs[key] = ipt.to(self.device)
-
-            # Prepare lookup frames and poses
-            relative_poses = []
-            for idx in self.matching_ids[1:]:
-                if ("relative_pose", idx) in inputs:
-                    relative_poses.append(inputs[("relative_pose", idx)])
-                else:
-                    print(f"Missing key: ('relative_pose', {idx}). Skipping...")
-                    relative_poses.append(torch.zeros_like(inputs[("K", 0)]))  # 填充默认值
-            relative_poses = torch.stack(relative_poses, 1)
-
-            lookup_frames = [inputs[("color_aug", idx, 0)] for idx in self.matching_ids[1:]]
-            lookup_frames = torch.stack(lookup_frames, 1)
-
-            # Forward pass through encoder
-            features, lowest_cost, confidence_mask = self.models["encoder"](
-                inputs["color_aug", 0, 0],
-                lookup_frames,
-                relative_poses,
-                inputs[("K", 2)],
-                inputs[("inv_K", 2)],
-                min_depth_bin=self.min_depth_tracker,
-                max_depth_bin=self.max_depth_tracker
-            )
-            outputs = self.models["depth"](features)
-
-            # Compute losses
-            losses = self.compute_losses(inputs, outputs, is_multi=True)
-            print(f"Batch losses: {losses}")
-
-            val_loss += losses["loss"].item()
-            count += 1
-
-        if count == 0:
-            print("Validation set is empty. Skipping validation.")
-            return 0
-
-        print(f"Validation loss: {val_loss / count}")
-        return val_loss / count
     # change feng
 
     def freeze_teacher(self):
@@ -718,15 +674,6 @@ class Trainer:
     def compute_losses(self, inputs, outputs, is_multi=False):
         """Compute the reprojection, smoothness and proxy supervised losses for a minibatch
         """
-        try:
-            assert inputs, "Inputs are empty!"
-            assert outputs, "Outputs are empty!"
-            assert ("color", 0, 0) in inputs, "Missing color data in inputs!"
-            assert ("disp", 0) in outputs, "Missing disparity data in outputs!"
-        except AssertionError as e:
-            print(f"Error in compute_losses: {e}")
-            return {"loss": torch.tensor(0.0).to(self.device)}
-
         losses = {}
         total_loss = 0
 
