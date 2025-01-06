@@ -589,6 +589,40 @@ class Trainer:
         self.set_train()
 ### chang feng
 
+    def validate_projection_backprojection(depth_map, intrinsics, height, width):
+        """
+        验证投影和反投影是否一致
+        :param depth_map: 输入深度图 (B, 1, H, W)
+        :param intrinsics: 相机内参矩阵 (B, 3, 3)
+        :param height: 图像高度
+        :param width: 图像宽度
+        """
+        batch_size = depth_map.shape[0]
+
+        # 构造单位矩阵作为变换矩阵
+        T_identity = torch.eye(4).unsqueeze(0).repeat(batch_size, 1, 1).to(depth_map.device)
+
+        # 生成像素坐标网格
+        y, x = torch.meshgrid(torch.arange(height), torch.arange(width), indexing='ij')
+        y, x = y.to(depth_map.device), x.to(depth_map.device)
+        pix_coords = torch.stack([x.flatten(), y.flatten(), torch.ones_like(x).flatten()], dim=0)  # (3, H*W)
+
+        # 反投影到相机坐标系
+        inv_intrinsics = torch.inverse(intrinsics)
+        cam_points = inv_intrinsics @ pix_coords * depth_map.view(1, -1)
+
+        # 投影回像素坐标
+        proj_points = intrinsics @ cam_points
+        proj_points = proj_points / proj_points[2:3]  # 归一化
+
+        # 验证是否与原始像素坐标一致
+        error = torch.abs(pix_coords[:2] - proj_points[:2])
+        print(f"Projection-backprojection error: {error.mean()}")
+        if torch.all(error < 1e-5):
+            print("Projection and backprojection are consistent!")
+        else:
+            print("Projection and backprojection are inconsistent.")
+
     def generate_images_pred(self, inputs, outputs, is_multi=False):
         """Generate the warped (reprojected) color images for a minibatch.
         Generated images are saved into the `outputs` dictionary.
