@@ -19,9 +19,6 @@ from .options import MonodepthOptions
 from manydepth import datasets, networks
 from .layers import transformation_from_parameters, disp_to_depth
 import tqdm
-# 设置了多线程环境变量，以提高计算效率。
-# 导入了模型评估所需的模块，如 cv2、torch、numpy、tqdm 等。
-# readlines 用于读取文件列表，transformation_from_parameters 用于计算相机变换矩阵，disp_to_depth 用于将视差图转换为深度图。
 
 cv2.setNumThreads(0)  # This speeds up evaluation 5x on our unix systems (OpenCV 3.3.1)
 
@@ -53,8 +50,7 @@ def compute_errors(gt, pred):
     sq_rel = np.mean(((gt - pred) ** 2) / gt)
 
     return abs_rel, sq_rel, rmse, rmse_log, a1, a2, a3
-# 计算预测深度和真实深度之间的误差指标，包括绝对相对误差、平方相对误差、均方根误差（RMSE）、对数均方根误差（RMSE_log），以及阈值精度（a1、a2、a3）。
-# 阈值精度计算的是预测值与真实值之间的比例差异，要求比例差异小于1.25、1.25的平方和1.25的立方。
+
 
 def batch_post_process_disparity(l_disp, r_disp):
     """Apply the disparity post-processing method as introduced in Monodepthv1
@@ -65,7 +61,7 @@ def batch_post_process_disparity(l_disp, r_disp):
     l_mask = (1.0 - np.clip(20 * (l - 0.05), 0, 1))[None, ...]
     r_mask = l_mask[:, :, ::-1]
     return r_mask * l_disp + l_mask * r_disp + (1.0 - l_mask - r_mask) * m_disp
-# 实现 Monodepthv1 的视差后处理方法，通过左右视差图的融合来改善视差预测的边界效果。
+
 
 def evaluate(opt):
     """Evaluates a pretrained model using a specified test set
@@ -79,8 +75,6 @@ def evaluate(opt):
     for idx in range(-1, -1 - opt.num_matching_frames, -1):
         if idx not in frames_to_load:
             frames_to_load.append(idx)
-# 设置最小和最大深度，用于深度图的裁剪。
-# rames_to_load 决定加载的帧序列，默认只加载当前帧。如果启用了未来帧或匹配帧，则添加对应的帧索引。
 
     assert sum((opt.eval_mono, opt.eval_stereo)) == 1, \
         "Please choose mono or stereo evaluation by setting either --eval_mono or --eval_stereo"
@@ -108,8 +102,6 @@ def evaluate(opt):
             encoder_class = networks.ResnetEncoderMatching
 
         encoder_dict = torch.load(encoder_path)
-# 检查加载模型权重的文件夹路径是否有效。
-# 加载编码器和解码器的模型权重路径。
         try:
             HEIGHT, WIDTH = encoder_dict['height'], encoder_dict['width']
         except KeyError:
@@ -173,8 +165,6 @@ def evaluate(opt):
 
         encoder.eval()
         depth_decoder.eval()
-# 	加载编码器和解码器权重并设置为评估模式。
-# 	使用 encoder 和 depth_decoder 进行深度预测。
 
         if torch.cuda.is_available():
             encoder.cuda()
@@ -261,9 +251,7 @@ def evaluate(opt):
                 pred_disp, _ = disp_to_depth(output[("disp", 0)], opt.min_depth, opt.max_depth)
                 pred_disp = pred_disp.cpu()[:, 0].numpy()
                 pred_disps.append(pred_disp)
-# 使用模型对输入数据进行预测，并将输出的视差转换为深度。
-# 将所有视差图 pred_disps 保存在列表中。
-        
+
         pred_disps = np.concatenate(pred_disps)
 
         print('finished predicting!')

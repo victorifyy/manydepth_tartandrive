@@ -354,10 +354,10 @@ class ResnetEncoderMatching(nn.Module):
             self.warp_depths = self.warp_depths.cpu()
 
     def to(self, device):
-        if str(device) == 'cpu':
-            self.cpu()
-        elif str(device) == 'cuda':
+        if str(device) == 'cuda':
             self.cuda()
+        elif str(device) == 'cpu':
+            self.cpu()
         else:
             raise NotImplementedError
 
