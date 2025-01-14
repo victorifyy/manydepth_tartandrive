@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24731252-7d64-4bbe-9703-1ec5eaec7ccf" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/tartandrive/tartan_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tartandrive/camera_info.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tartandrive/check_alignment.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tartandrive/depth.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/manydepth/datasets/tartan_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/manydepth/datasets/tartan_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/manydepth/datasets/tartan_dataset_副本.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tartandrive/tartan_dataset.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +74,10 @@
       <workItem from="1736394956875" duration="519000" />
       <workItem from="1736400219037" duration="1026000" />
       <workItem from="1736411313333" duration="56000" />
-      <workItem from="1736411610483" duration="1003000" />
+      <workItem from="1736411610483" duration="1311000" />
+      <workItem from="1736412953968" duration="598000" />
+      <workItem from="1736559724802" duration="1060000" />
+      <workItem from="1736831322464" duration="4093000" />
     </task>
     <servers />
   </component>
@@ -82,10 +85,12 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/manydepth_tartandrive$depth.coverage" NAME="depth 覆盖结果" MODIFIED="1736864580268" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tartandrive" />
     <SUITE FILE_PATH="coverage/manydepth_tartandrive$trainer.coverage" NAME="trainer 覆盖结果" MODIFIED="1735807444191" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/manydepth" />
     <SUITE FILE_PATH="coverage/manydepth_tartandrive$image_match.coverage" NAME="image_match 覆盖结果" MODIFIED="1736176438823" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tartandrive" />
     <SUITE FILE_PATH="coverage/manydepth_tartandrive$tartan_dataset.coverage" NAME="tartan_dataset 覆盖结果" MODIFIED="1736304307171" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/manydepth/datasets" />
     <SUITE FILE_PATH="coverage/manydepth_tartandrive$tartan_test.coverage" NAME="tartan_test 覆盖结果" MODIFIED="1736411365293" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tartandrive" />
     <SUITE FILE_PATH="coverage/manydepth_tartandrive$transformation_matrix.coverage" NAME="transformation_matrix 覆盖结果" MODIFIED="1734097436974" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tartandrive" />
+    <SUITE FILE_PATH="coverage/manydepth_tartandrive$camera_info.coverage" NAME="camera_info 覆盖结果" MODIFIED="1736861193403" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tartandrive" />
   </component>
 </project>

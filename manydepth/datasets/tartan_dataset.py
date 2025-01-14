@@ -32,7 +32,7 @@ class TartanDriveDataset(MonoDataset):
             if not os.path.exists(depth_path):
                 print(f"Missing depth file: {depth_path}")
 
-    def load_depth(self, idx):
+    def load_depth_new(self, idx):
         """
         加载深度图，支持 .npy 和 .jpg 格式
         """
@@ -87,7 +87,7 @@ class TartanDriveDataset(MonoDataset):
         """
         # 加载图像和深度图
         left_image = self.load_image(idx, image_type="left")
-        depth_map = self.load_depth(idx)
+        depth_map = self.load_depth_new(idx)
 
         # 转换为张量
         left_image = torch.tensor(left_image, dtype=torch.float32).permute(2, 0, 1) / 255.0  # 转换为 [C, H, W] 格式并归一化
@@ -106,4 +106,3 @@ class TartanDriveDataset(MonoDataset):
             "depth": depth_map,
             "intrinsics": intrinsics
         }
-
